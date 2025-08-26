@@ -8,3 +8,5 @@ CREATE TABLE IF NOT EXISTS files (
   last_accessed_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
   download_count bigint NOT NULL DEFAULT 0
 );
+
+CREATE UNIQUE INDEX idx_files_token ON files (token);
