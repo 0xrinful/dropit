@@ -14,12 +14,12 @@ import (
 var ErrDuplicateEmail = errors.New("duplicate email")
 
 type User struct {
-	ID        int64
-	Name      string
-	CreatedAt time.Time
-	Email     string
-	Password  password
-	Role      string
+	ID        int64     `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
+	Email     string    `json:"email"`
+	Password  password  `json:"-"`
+	Role      string    `json:"-"`
 }
 
 type password struct {
