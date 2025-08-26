@@ -1,0 +1,64 @@
+package main
+
+import (
+	"errors"
+	"net/http"
+	"time"
+
+	"github.com/0xrinful/dropit/internal/models"
+	"github.com/0xrinful/dropit/internal/validator"
+)
+
+func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.sendBadRequestError(w, r, err)
+		return
+	}
+
+	v := validator.New()
+	models.ValidateEmail(v, input.Email)
+	models.ValidatePasswordPlaintext(v, input.Password)
+	if !v.Valid() {
+		app.sendValidationError(w, r, v.Errors)
+		return
+	}
+
+	user, err := app.models.Users.GetByEmail(input.Email)
+	if err != nil {
+		switch {
+		case errors.Is(err, models.ErrRecordNotFound):
+			app.sendInvalidCredentialsError(w, r)
+		default:
+			app.sendServerError(w, r, err)
+		}
+		return
+	}
+
+	match, err := user.Password.Matches(input.Password)
+	if err != nil {
+		app.sendServerError(w, r, err)
+		return
+	}
+
+	if !match {
+		app.sendInvalidCredentialsError(w, r)
+		return
+	}
+
+	token, err := app.models.Tokens.New(user.ID, 24*time.Hour, models.ScopeAuthentication)
+	if err != nil {
+		app.sendServerError(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusCreated, envelope{"token": token}, nil)
+	if err != nil {
+		app.sendServerError(w, r, err)
+	}
+}

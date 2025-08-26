@@ -62,3 +62,8 @@ func (app *application) sendValidationError(
 ) {
 	app.sendError(w, r, http.StatusUnprocessableEntity, errors)
 }
+
+func (app *application) sendInvalidCredentialsError(w http.ResponseWriter, r *http.Request) {
+	message := "invalid authentication credentials"
+	app.sendError(w, r, http.StatusUnauthorized, message)
+}

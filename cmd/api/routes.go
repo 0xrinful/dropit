@@ -18,7 +18,7 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc("POST", "/users", app.registerUserHandler)
 	router.HandlerFunc("GET", "/users/:id/files", nil)
 
-	router.HandlerFunc("POST", "/auth/login", nil)
+	router.HandlerFunc("POST", "/auth/login", app.loginHandler)
 
 	return router
 }
