@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/0xrinful/dropit/internal/models"
+	"github.com/0xrinful/dropit/internal/data"
 	"github.com/0xrinful/dropit/internal/validator"
 )
 
@@ -21,7 +21,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	user := &models.User{
+	user := &data.User{
 		Name:  input.Name,
 		Email: input.Email,
 		Role:  "user",
@@ -34,7 +34,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	v := validator.New()
-	if models.ValidateUser(v, user); !v.Valid() {
+	if data.ValidateUser(v, user); !v.Valid() {
 		app.sendValidationError(w, r, v.Errors)
 		return
 	}
@@ -42,7 +42,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	err = app.models.Users.Insert(user)
 	if err != nil {
 		switch {
-		case errors.Is(err, models.ErrDuplicateEmail):
+		case errors.Is(err, data.ErrDuplicateEmail):
 			v.AddError("email", "a user with this email address already exists")
 			app.sendValidationError(w, r, v.Errors)
 		default:

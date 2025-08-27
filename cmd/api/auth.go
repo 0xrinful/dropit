@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/0xrinful/dropit/internal/models"
+	"github.com/0xrinful/dropit/internal/data"
 	"github.com/0xrinful/dropit/internal/validator"
 )
 
@@ -22,8 +22,8 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	v := validator.New()
-	models.ValidateEmail(v, input.Email)
-	models.ValidatePasswordPlaintext(v, input.Password)
+	data.ValidateEmail(v, input.Email)
+	data.ValidatePasswordPlaintext(v, input.Password)
 	if !v.Valid() {
 		app.sendValidationError(w, r, v.Errors)
 		return
@@ -32,7 +32,7 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := app.models.Users.GetByEmail(input.Email)
 	if err != nil {
 		switch {
-		case errors.Is(err, models.ErrRecordNotFound):
+		case errors.Is(err, data.ErrRecordNotFound):
 			app.sendInvalidCredentialsError(w, r)
 		default:
 			app.sendServerError(w, r, err)
@@ -51,7 +51,7 @@ func (app *application) loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := app.models.Tokens.New(user.ID, 24*time.Hour, models.ScopeAuthentication)
+	token, err := app.models.Tokens.New(user.ID, 24*time.Hour, data.ScopeAuthentication)
 	if err != nil {
 		app.sendServerError(w, r, err)
 		return

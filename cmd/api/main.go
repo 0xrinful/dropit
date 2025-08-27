@@ -9,8 +9,8 @@ import (
 
 	_ "github.com/lib/pq"
 
+	"github.com/0xrinful/dropit/internal/data"
 	"github.com/0xrinful/dropit/internal/logger"
-	"github.com/0xrinful/dropit/internal/models"
 )
 
 type config struct {
@@ -26,7 +26,7 @@ type config struct {
 type application struct {
 	config config
 	logger *logger.Logger
-	models models.Models
+	models data.Models
 }
 
 func main() {
@@ -44,7 +44,7 @@ func main() {
 	app := &application{
 		config: cfg,
 		logger: logger,
-		models: models.New(db),
+		models: data.NewModels(db),
 	}
 
 	err = app.serve()

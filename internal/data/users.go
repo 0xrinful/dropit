@@ -1,7 +1,8 @@
-package models
+package data
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"time"
@@ -11,7 +12,10 @@ import (
 	"github.com/0xrinful/dropit/internal/validator"
 )
 
-var ErrDuplicateEmail = errors.New("duplicate email")
+var (
+	ErrDuplicateEmail = errors.New("duplicate email")
+	AnonymousUser     = &User{}
+)
 
 type User struct {
 	ID        int64     `json:"id"`
@@ -20,6 +24,10 @@ type User struct {
 	Email     string    `json:"email"`
 	Password  password  `json:"-"`
 	Role      string    `json:"-"`
+}
+
+func (u *User) IsAnonymous() bool {
+	return u == AnonymousUser
 }
 
 type password struct {
@@ -105,6 +113,42 @@ func (m UserModel) GetByEmail(email string) (*User, error) {
 			return nil, err
 		}
 	}
+	return &user, nil
+}
+
+func (m UserModel) GetForToken(scope, tokenPlainText string) (*User, error) {
+	tokenHash := sha256.Sum256([]byte(tokenPlainText))
+
+	query := `
+		SELECT u.id, u.name, u.created_at, u.email, u.password_hash, u.role
+		FROM users u
+		INNER JOIN tokens t
+		ON t.user_id = u.id
+		WHERE t.hash = $1
+		AND t.scope = $2 
+		AND t.expiry > $3`
+
+	args := []any{tokenHash[:], scope, time.Now()}
+
+	var user User
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
+		&user.ID, &user.Name, &user.CreatedAt,
+		&user.Email, &user.Password.hash,
+		&user.Role,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
 	return &user, nil
 }
 

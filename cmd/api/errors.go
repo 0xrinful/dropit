@@ -67,3 +67,14 @@ func (app *application) sendInvalidCredentialsError(w http.ResponseWriter, r *ht
 	message := "invalid authentication credentials"
 	app.sendError(w, r, http.StatusUnauthorized, message)
 }
+
+func (app *application) sendInvalidAuthTokenError(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("WWW-Authenticate", "Bearer")
+	message := "invalid or missing authentication token"
+	app.sendError(w, r, http.StatusUnauthorized, message)
+}
+
+func (app *application) sendAuthRequiredError(w http.ResponseWriter, r *http.Request) {
+	message := "you must be authenticated to access this resource"
+	app.sendError(w, r, http.StatusUnauthorized, message)
+}

@@ -1,4 +1,4 @@
-package models
+package data
 
 import (
 	"context"
@@ -7,6 +7,8 @@ import (
 	"database/sql"
 	"encoding/base32"
 	"time"
+
+	"github.com/0xrinful/dropit/internal/validator"
 )
 
 const (
@@ -67,4 +69,9 @@ func (m TokenModel) Insert(token *Token) error {
 
 	_, err := m.DB.ExecContext(ctx, query, args...)
 	return err
+}
+
+func ValidateTokenPlaintext(v *validator.Validator, tokenPlaintext string) {
+	v.Check(tokenPlaintext != "", "token", "must be provided")
+	v.Check(len(tokenPlaintext) == 26, "token", "must be 26 bytes long")
 }

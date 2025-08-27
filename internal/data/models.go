@@ -1,4 +1,4 @@
-package models
+package data
 
 import (
 	"database/sql"
@@ -12,6 +12,7 @@ type Models struct {
 	Users interface {
 		Insert(user *User) error
 		GetByEmail(email string) (*User, error)
+		GetForToken(scope, tokenPlainText string) (*User, error)
 	}
 	Tokens interface {
 		New(userID int64, ttl time.Duration, scope string) (*Token, error)
@@ -19,7 +20,7 @@ type Models struct {
 	}
 }
 
-func New(db *sql.DB) Models {
+func NewModels(db *sql.DB) Models {
 	return Models{
 		Users:  UserModel{DB: db},
 		Tokens: TokenModel{DB: db},
