@@ -7,6 +7,8 @@ import (
 	"io"
 	"maps"
 	"net/http"
+	"os"
+	"path"
 	"strings"
 )
 
@@ -112,4 +114,47 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any
 	}
 
 	return nil
+}
+
+func (app *application) uploadFile(
+	w http.ResponseWriter,
+	r *http.Request,
+	formKey, storagename string,
+) (string, error) {
+	maxUploadSize := int64(15 << 20)
+	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+
+	if err := r.ParseMultipartForm(maxUploadSize); err != nil {
+		var maxBytesErr *http.MaxBytesError
+		switch {
+		case errors.As(err, &maxBytesErr):
+			msg := fmt.Sprintf("file size must not be larger than %d MB", maxUploadSize/(1<<20))
+			return "", &malformedRequest{status: http.StatusRequestEntityTooLarge, message: msg}
+		case errors.Is(err, http.ErrNotMultipart):
+			msg := "request is not multipart/form-data"
+			return "", &malformedRequest{status: http.StatusBadRequest, message: msg}
+		default:
+			return "", &malformedRequest{status: http.StatusBadRequest, message: err.Error()}
+		}
+	}
+
+	file, handler, err := r.FormFile(formKey)
+	if err != nil {
+		return "", &malformedRequest{status: http.StatusBadRequest, message: err.Error()}
+	}
+	defer file.Close()
+
+	filepath := path.Join(uploadDir, storagename)
+	dst, err := os.Create(filepath)
+	if err != nil {
+		return "", err
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, file); err != nil {
+		os.Remove(filepath)
+		return "", err
+	}
+
+	return handler.Filename, nil
 }

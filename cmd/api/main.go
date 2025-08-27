@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"flag"
+	"fmt"
 	"os"
 	"time"
 
@@ -12,6 +13,8 @@ import (
 	"github.com/0xrinful/dropit/internal/data"
 	"github.com/0xrinful/dropit/internal/logger"
 )
+
+const uploadDir = "./uploads"
 
 type config struct {
 	port int
@@ -33,6 +36,10 @@ func main() {
 	cfg := parseFlags()
 
 	logger := logger.New(os.Stdout, logger.LevelInfo)
+
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		logger.PrintFatal(fmt.Errorf("cannot create storage dir: %v", err))
+	}
 
 	db, err := openDB(cfg)
 	if err != nil {

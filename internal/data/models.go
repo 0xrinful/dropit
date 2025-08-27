@@ -18,11 +18,16 @@ type Models struct {
 		New(userID int64, ttl time.Duration, scope string) (*Token, error)
 		Insert(token *Token) error
 	}
+
+	Files interface {
+		Insert(file *File) error
+	}
 }
 
 func NewModels(db *sql.DB) Models {
 	return Models{
 		Users:  UserModel{DB: db},
 		Tokens: TokenModel{DB: db},
+		Files:  FileModel{DB: db},
 	}
 }

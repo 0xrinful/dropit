@@ -11,7 +11,7 @@ func (app *application) routes() http.Handler {
 	router.NotFound = http.HandlerFunc(app.sendNotFoundError)
 	router.MethodNotAllowed = http.HandlerFunc(app.sendMethodNotAllowedError)
 
-	router.HandlerFunc("POST", "/files", nil)
+	router.HandlerFunc("POST", "/files", app.uploadHandler)
 	router.HandlerFunc("GET", "/files/:token", nil)
 	router.HandlerFunc("DELETE", "/files/:token", app.requireAuth(nil))
 

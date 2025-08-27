@@ -52,7 +52,7 @@ func (app *application) sendBadRequestError(w http.ResponseWriter, r *http.Reque
 		app.sendError(w, r, mr.status, mr.message)
 		return
 	}
-	app.sendError(w, r, http.StatusBadRequest, err.Error())
+	app.sendServerError(w, r, err)
 }
 
 func (app *application) sendValidationError(
