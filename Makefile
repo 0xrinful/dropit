@@ -34,6 +34,14 @@ db/migrations/up: confirm
 	@echo 'Running up migrations...'
 	migrate -path ./migrations -database ${DROPIT_DB_DSN} up
 
+
+## db/migrations/down: apply all down database migrations
+.PHONY: db/migrations/down
+db/migrations/down:
+	@echo 'Running down migrations...'
+	migrate -path ./migrations -database ${DROPIT_DB_DSN} down
+
+
 ## db/migrations/new name=$1: create a new database migration
 .PHONY: db/migrations/new
 db/migrations/new:

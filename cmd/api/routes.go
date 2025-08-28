@@ -12,7 +12,7 @@ func (app *application) routes() http.Handler {
 	router.MethodNotAllowed = http.HandlerFunc(app.sendMethodNotAllowedError)
 
 	router.HandlerFunc("POST", "/files", app.uploadHandler)
-	router.HandlerFunc("GET", "/files/:token", nil)
+	router.HandlerFunc("GET", "/files/:token", app.GetFileHandler)
 	router.HandlerFunc("DELETE", "/files/:token", app.requireAuth(nil))
 
 	router.HandlerFunc("POST", "/users", app.registerUserHandler)

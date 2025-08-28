@@ -6,7 +6,10 @@ import (
 	"time"
 )
 
-var ErrRecordNotFound = errors.New("record not found")
+var (
+	ErrRecordNotFound = errors.New("record not found")
+	ErrEditConflict   = errors.New("edit conflict")
+)
 
 type Models struct {
 	Users interface {
@@ -21,6 +24,8 @@ type Models struct {
 
 	Files interface {
 		Insert(file *File) error
+		GetByToken(token string) (*File, error)
+		Update(file *File) error
 	}
 }
 

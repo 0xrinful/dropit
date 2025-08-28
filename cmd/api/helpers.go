@@ -10,7 +10,19 @@ import (
 	"os"
 	"path"
 	"strings"
+
+	"github.com/julienschmidt/httprouter"
 )
+
+func (app *application) readTokenParam(r *http.Request) (string, error) {
+	params := httprouter.ParamsFromContext(r.Context())
+
+	token := params.ByName("token")
+	if len(token) != 8 {
+		return "", errors.New("invalid token parameter")
+	}
+	return token, nil
+}
 
 type envelope map[string]any
 

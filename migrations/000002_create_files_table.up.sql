@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS files (
   storage_path TEXT NOT NULL UNIQUE,
   created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
   last_accessed_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
-  download_count bigint NOT NULL DEFAULT 0
+  download_count integer NOT NULL DEFAULT 0,
+  version integer NOT NULL DEFAULT 1
 );
 
 CREATE UNIQUE INDEX idx_files_token ON files (token);

@@ -1,8 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
+	"time"
 
 	"github.com/0xrinful/dropit/internal/data"
 )
@@ -42,6 +47,49 @@ func (app *application) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	headers.Set("Location", fmt.Sprintf("/files/%s", file.Token))
 
 	err = app.writeJSON(w, http.StatusCreated, envelope{"file": file}, headers)
+	if err != nil {
+		app.sendServerError(w, r, err)
+	}
+}
+
+func (app *application) GetFileHandler(w http.ResponseWriter, r *http.Request) {
+	token, err := app.readTokenParam(r)
+	if err != nil {
+		app.sendNotFoundError(w, r)
+		return
+	}
+
+	fileInfo, err := app.models.Files.GetByToken(token)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.sendNotFoundError(w, r)
+		default:
+			app.sendServerError(w, r, err)
+		}
+		return
+	}
+
+	file, err := os.Open(filepath.Join(uploadDir, fileInfo.StoragePath))
+	if err != nil {
+		app.sendServerError(w, r, err)
+		return
+	}
+	defer file.Close()
+
+	stat, err := file.Stat()
+	if err != nil {
+		app.sendServerError(w, r, err)
+		return
+	}
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+strconv.Quote(fileInfo.Filename))
+	http.ServeContent(w, r, fileInfo.Filename, stat.ModTime(), file)
+
+	fileInfo.LastAccessedAt = time.Now()
+	fileInfo.DownloadCount += 1
+
+	err = app.models.Files.Update(fileInfo)
 	if err != nil {
 		app.sendServerError(w, r, err)
 	}

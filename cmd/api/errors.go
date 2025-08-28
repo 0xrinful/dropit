@@ -78,3 +78,8 @@ func (app *application) sendAuthRequiredError(w http.ResponseWriter, r *http.Req
 	message := "you must be authenticated to access this resource"
 	app.sendError(w, r, http.StatusUnauthorized, message)
 }
+
+func (app *application) sendEditConflictError(w http.ResponseWriter, r *http.Request) {
+	message := "unable to update the record due to an edit conflict, please try again"
+	app.sendError(w, r, http.StatusConflict, message)
+}
