@@ -13,7 +13,7 @@ func (app *application) routes() http.Handler {
 
 	router.HandlerFunc("POST", "/files", app.uploadHandler)
 	router.HandlerFunc("GET", "/files/:token", app.GetFileHandler)
-	router.HandlerFunc("DELETE", "/files/:token", app.requireAuth(nil))
+	router.HandlerFunc("DELETE", "/files/:token", app.requireAuth(app.deleteFileHanlder))
 
 	router.HandlerFunc("POST", "/users", app.registerUserHandler)
 	router.HandlerFunc("GET", "/users/:id/files", app.getUserFilesHanlder)

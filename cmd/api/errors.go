@@ -83,3 +83,8 @@ func (app *application) sendEditConflictError(w http.ResponseWriter, r *http.Req
 	message := "unable to update the record due to an edit conflict, please try again"
 	app.sendError(w, r, http.StatusConflict, message)
 }
+
+func (app *application) sendPermissionDeniedError(w http.ResponseWriter, r *http.Request) {
+	message := "you do not have permission to perform this action"
+	app.sendError(w, r, http.StatusForbidden, message)
+}

@@ -7,8 +7,9 @@ import (
 )
 
 var (
-	ErrRecordNotFound = errors.New("record not found")
-	ErrEditConflict   = errors.New("edit conflict")
+	ErrRecordNotFound   = errors.New("record not found")
+	ErrEditConflict     = errors.New("edit conflict")
+	ErrPermissionDenied = errors.New("permission denied")
 )
 
 type Models struct {
@@ -27,6 +28,7 @@ type Models struct {
 		GetByToken(token string) (*File, error)
 		Update(file *File) error
 		GetAllForUser(id int64) ([]*File, error)
+		Delete(token string, ownerID int64) error
 	}
 }
 

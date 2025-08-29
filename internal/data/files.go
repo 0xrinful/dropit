@@ -152,3 +152,30 @@ func (m FileModel) GetAllForUser(id int64) ([]*File, error) {
 	}
 	return files, nil
 }
+
+func (m FileModel) Delete(token string, ownerID int64) error {
+	if len(token) != 8 {
+		return ErrRecordNotFound
+	}
+	query := `
+		DELETE FROM files
+		WHERE token = $1 AND owner_id = $2`
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	result, err := m.DB.ExecContext(ctx, query, token, ownerID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
+	}
+	return nil
+}

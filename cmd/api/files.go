@@ -99,3 +99,53 @@ func (app *application) GetFileHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
+func (app *application) deleteFileHanlder(w http.ResponseWriter, r *http.Request) {
+	token, err := app.readTokenParam(r)
+	if err != nil {
+		app.sendNotFoundError(w, r)
+		return
+	}
+
+	file, err := app.models.Files.GetByToken(token)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.sendNotFoundError(w, r)
+		default:
+			app.sendServerError(w, r, err)
+		}
+		return
+	}
+
+	user := app.contextGetUser(r)
+	if *file.OwnerID != user.ID {
+		app.sendPermissionDeniedError(w, r)
+		return
+	}
+
+	err = app.models.Files.Delete(token, user.ID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.sendNotFoundError(w, r)
+		default:
+			app.sendServerError(w, r, err)
+		}
+		return
+	}
+
+	filepath := filepath.Join(uploadDir, file.StoragePath)
+	err = os.Remove(filepath)
+	if err != nil {
+		app.logger.PrintError(fmt.Errorf(
+			"failed to delete file from disk path=%s: %v",
+			filepath, err,
+		))
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"message": "file successfully deleted"}, nil)
+	if err != nil {
+		app.sendServerError(w, r, err)
+	}
+}
