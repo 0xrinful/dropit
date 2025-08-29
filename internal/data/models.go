@@ -26,6 +26,7 @@ type Models struct {
 		Insert(file *File) error
 		GetByToken(token string) (*File, error)
 		Update(file *File) error
+		GetAllForUser(id int64) ([]*File, error)
 	}
 }
 

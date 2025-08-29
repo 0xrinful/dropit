@@ -91,6 +91,11 @@ func (app *application) GetFileHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = app.models.Files.Update(fileInfo)
 	if err != nil {
-		app.sendServerError(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrEditConflict):
+			app.sendEditConflictError(w, r)
+		default:
+			app.sendServerError(w, r, err)
+		}
 	}
 }

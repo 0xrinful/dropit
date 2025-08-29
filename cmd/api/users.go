@@ -56,3 +56,22 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		app.sendServerError(w, r, err)
 	}
 }
+
+func (app *application) getUserFilesHanlder(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.sendNotFoundError(w, r)
+		return
+	}
+
+	files, err := app.models.Files.GetAllForUser(id)
+	if err != nil {
+		app.sendServerError(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"files": files}, nil)
+	if err != nil {
+		app.sendServerError(w, r, err)
+	}
+}

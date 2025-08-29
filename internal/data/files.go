@@ -28,11 +28,11 @@ type File struct {
 	Token          string    `json:"token"`
 	OwnerID        *int64    `json:"owner_id"`
 	Filename       string    `json:"filename"`
-	StoragePath    string    `json:"storage_path"`
+	StoragePath    string    `json:"-"`
 	CreatedAt      time.Time `json:"created_at"`
 	LastAccessedAt time.Time `json:"last_accessed_at"`
 	DownloadCount  int       `json:"download_count"`
-	Version        int
+	Version        int       `json:"-"`
 }
 
 type FileModel struct {
@@ -111,4 +111,44 @@ func (m FileModel) GetByToken(token string) (*File, error) {
 	}
 
 	return &file, nil
+}
+
+func (m FileModel) GetAllForUser(id int64) ([]*File, error) {
+	if id < 1 {
+		return nil, ErrRecordNotFound
+	}
+
+	query := `
+		SELECT id, token, owner_id, filename, storage_path, 
+		created_at, last_accessed_at, download_count, version
+		FROM files WHERE owner_id = $1`
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	files := []*File{}
+	for rows.Next() {
+		var file File
+		err = rows.Scan(
+			&file.ID, &file.Token,
+			&file.OwnerID, &file.Filename,
+			&file.StoragePath, &file.CreatedAt,
+			&file.LastAccessedAt, &file.DownloadCount,
+			&file.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, &file)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return files, nil
 }

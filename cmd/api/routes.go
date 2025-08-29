@@ -16,7 +16,7 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc("DELETE", "/files/:token", app.requireAuth(nil))
 
 	router.HandlerFunc("POST", "/users", app.registerUserHandler)
-	router.HandlerFunc("GET", "/users/:id/files", nil)
+	router.HandlerFunc("GET", "/users/:id/files", app.getUserFilesHanlder)
 
 	router.HandlerFunc("POST", "/auth/login", app.loginHandler)
 
