@@ -88,3 +88,8 @@ func (app *application) sendPermissionDeniedError(w http.ResponseWriter, r *http
 	message := "you do not have permission to perform this action"
 	app.sendError(w, r, http.StatusForbidden, message)
 }
+
+func (app *application) sendrateLimitExceededError(w http.ResponseWriter, r *http.Request) {
+	message := "rate limit exceeded"
+	app.sendError(w, r, http.StatusTooManyRequests, message)
+}
